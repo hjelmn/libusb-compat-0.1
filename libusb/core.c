@@ -79,6 +79,11 @@ API_EXPORTED void usb_init(void)
 		usbi_err("initialization failed!");
 }
 
+API_EXPORTED char *usb_strerror(void)
+{
+	return "Unknown error";
+}
+
 static int find_busses(struct usb_bus **ret)
 {
 	libusb_device **dev_list = NULL;
@@ -361,6 +366,7 @@ API_EXPORTED usb_dev_handle *usb_open(struct usb_device *dev)
 	}
 
 	udev->last_claimed_interface = -1;
+	udev->device = dev;
 	return udev;
 }
 
@@ -370,6 +376,11 @@ API_EXPORTED int usb_close(usb_dev_handle *dev)
 	libusb_close(dev->handle);
 	free(dev);
 	return 0;
+}
+
+API_EXPORTED struct usb_device *usb_device(usb_dev_handle *dev)
+{
+	return dev->device;
 }
 
 API_EXPORTED int usb_set_configuration(usb_dev_handle *dev, int configuration)

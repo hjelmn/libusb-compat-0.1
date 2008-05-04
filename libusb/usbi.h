@@ -73,6 +73,7 @@ void usbi_log(enum usbi_log_level, const char *function,
 
 struct usb_dev_handle {
 	libusb_device_handle *handle;
+	struct usb_device *device;
 
 	/* libusb-0.1 is buggy w.r.t. interface claiming. it allows you to claim
 	 * multiple interfaces but only tracks the most recently claimed one,
