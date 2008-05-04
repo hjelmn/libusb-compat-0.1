@@ -46,7 +46,7 @@ while test $# -gt 0; do
       echo_exec_prefix=yes
       ;;
     --version)
-      echo @LIBUSB_VERSION@
+      echo @VERSION@
       exit 0
       ;;
     --cflags)
@@ -75,5 +75,5 @@ if test "$echo_cflags" = "yes"; then
 	echo $includes
 fi
 if test "$echo_libs" = "yes"; then
-	echo -L@libdir@ -lusb @OSLIBS@
+	echo -L@libdir@ -lusb
 fi

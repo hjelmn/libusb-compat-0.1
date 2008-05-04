@@ -10,6 +10,8 @@ endif
 pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA=libusb.pc
 
+bin_SCRIPTS = libusb-config
+
 .PHONY: ChangeLog dist-up
 ChangeLog:
 	git --git-dir $(top_srcdir)/.git log > ChangeLog || touch ChangeLog
