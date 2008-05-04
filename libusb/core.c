@@ -360,15 +360,82 @@ API_EXPORTED usb_dev_handle *usb_open(struct usb_device *dev)
 		return NULL;
 	}
 
+	udev->last_claimed_interface = -1;
 	return udev;
 }
 
 API_EXPORTED int usb_close(usb_dev_handle *dev)
 {
 	usbi_dbg("");
-
 	libusb_close(dev->handle);
 	free(dev);
 	return 0;
+}
+
+API_EXPORTED int usb_set_configuration(usb_dev_handle *dev, int configuration)
+{
+	usbi_dbg("configuration %d", configuration);
+	return libusb_set_configuration(dev->handle, configuration);
+}
+
+API_EXPORTED int usb_claim_interface(usb_dev_handle *dev, int interface)
+{
+	int r;
+	usbi_dbg("interface %d", interface);
+
+	r = libusb_claim_interface(dev->handle, interface);
+	if (r == 0) {
+		dev->last_claimed_interface = interface;
+		return 0;
+	}
+
+	switch (r) {
+	case LIBUSB_ERROR_NO_MEM:
+		return -ENOMEM;
+	case LIBUSB_ERROR_BUSY:
+		return -EBUSY;
+	default:
+		return r;
+	}
+}
+
+API_EXPORTED int usb_release_interface(usb_dev_handle *dev, int interface)
+{
+	int r;
+	usbi_dbg("interface %d", interface);
+
+	r = libusb_release_interface(dev->handle, interface);
+	if (r == 0)
+		dev->last_claimed_interface = -1;
+
+	return r;
+}
+
+API_EXPORTED int usb_set_altinterface(usb_dev_handle *dev, int alternate)
+{
+	usbi_dbg("alternate %d", alternate);
+	if (dev->last_claimed_interface < 0)
+		return -EINVAL;
+	
+	return libusb_set_interface_alt_setting(dev->handle,
+		dev->last_claimed_interface, alternate);
+}
+
+API_EXPORTED int usb_resetep(usb_dev_handle *dev, unsigned int ep)
+{
+	/* FIXME: implement */
+	return -ENOTSUP;
+}
+
+API_EXPORTED int usb_clear_halt(usb_dev_handle *dev, unsigned int ep)
+{
+	/* FIXME: implement */
+	return -ENOTSUP;
+}
+
+API_EXPORTED int usb_reset(usb_dev_handle *dev)
+{
+	/* FIXME: implement */
+	return -ENOTSUP;
 }
 
