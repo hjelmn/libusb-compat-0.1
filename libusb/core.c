@@ -496,3 +496,51 @@ API_EXPORTED int usb_interrupt_write(usb_dev_handle *dev, int ep, char *bytes,
 	return usb_interrupt_io(dev, ep, bytes, size, timeout);
 }
 
+API_EXPORTED int usb_control_msg(usb_dev_handle *dev, int bmRequestType,
+	int bRequest, int wValue, int wIndex, char *bytes, int size, int timeout)
+{
+	int r;
+	usbi_dbg("RQT=%x RQ=%x V=%x I=%x len=%d timeout=%d", bmRequestType,
+		bRequest, wValue, wIndex, size, timeout);
+
+	r = libusb_control_transfer(dev->handle, bmRequestType & 0xff,
+		bRequest & 0xff, wValue & 0xffff, wIndex & 0xffff, bytes, size & 0xffff,
+		timeout);
+
+	if (r == LIBUSB_ERROR_TIMEOUT)
+		return -ETIMEDOUT;
+	else
+		return r;
+}
+
+API_EXPORTED int usb_get_string(usb_dev_handle *dev, int desc_index, int langid,
+	char *buf, size_t buflen)
+{
+	return libusb_get_string_descriptor(dev->handle, desc_index & 0xff,
+		langid & 0xffff, buf, (int) buflen);
+}
+
+API_EXPORTED int usb_get_string_simple(usb_dev_handle *dev, int desc_index,
+	char *buf, size_t buflen)
+{
+	return libusb_get_string_descriptor_ascii(dev->handle, desc_index & 0xff,
+		buf, (int) buflen);
+}
+
+API_EXPORTED int usb_get_descriptor(usb_dev_handle *dev, unsigned char type,
+	unsigned char desc_index, void *buf, int size)
+{
+	return libusb_get_descriptor(dev->handle, type, desc_index, buf, size);
+}
+
+API_EXPORTED int usb_get_descriptor_by_endpoint(usb_dev_handle *dev, int ep,
+	unsigned char type, unsigned char desc_index, void *buf, int size)
+{
+	/* this function doesn't make much sense - the specs don't talk about
+	 * getting a descriptor "by endpoint". libusb-1.0 does not provide this
+	 * functionality so we just send a control message directly */
+	return libusb_control_transfer(dev->handle,
+		LIBUSB_ENDPOINT_IN | (ep & 0xff), LIBUSB_REQUEST_GET_DESCRIPTOR,
+		(type << 8) | desc_index, 0, buf, size, 1000);
+}
+
