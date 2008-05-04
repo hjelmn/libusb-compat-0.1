@@ -1,1 +1,8 @@
 libusb-compat-0.1
+
+A compatibility layer allowing applications written for libusb-0.1 to work
+with libusb-1.0.
+
+usb_resetep(), a previously deprecated function, is implemented as equivalent
+to calling usb_clear_halt().
+

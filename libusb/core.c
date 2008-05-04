@@ -423,19 +423,17 @@ API_EXPORTED int usb_set_altinterface(usb_dev_handle *dev, int alternate)
 
 API_EXPORTED int usb_resetep(usb_dev_handle *dev, unsigned int ep)
 {
-	/* FIXME: implement */
-	return -ENOTSUP;
+	return usb_clear_halt(dev, ep);
 }
 
 API_EXPORTED int usb_clear_halt(usb_dev_handle *dev, unsigned int ep)
 {
-	/* FIXME: implement */
-	return -ENOTSUP;
+	usbi_dbg("endpoint %x", ep);
+	return libusb_clear_halt(dev->handle, ep & 0xff);
 }
 
 API_EXPORTED int usb_reset(usb_dev_handle *dev)
 {
-	/* FIXME: implement */
-	return -ENOTSUP;
+	return libusb_reset_device(dev->handle);
 }
 
