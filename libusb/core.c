@@ -434,6 +434,65 @@ API_EXPORTED int usb_clear_halt(usb_dev_handle *dev, unsigned int ep)
 
 API_EXPORTED int usb_reset(usb_dev_handle *dev)
 {
+	usbi_dbg("");
 	return libusb_reset_device(dev->handle);
+}
+
+static int usb_bulk_io(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout)
+{
+	int actual_length;
+	int r;
+	usbi_dbg("endpoint %x size %d timeout %d", ep, size, timeout);
+	r = libusb_bulk_transfer(dev->handle, ep & 0xff, bytes, size,
+		&actual_length, timeout);
+	
+	/* if we timed out but did transfer some data, report as successful short
+	 * read. FIXME: is this how libusb-0.1 works? */
+	if (r == 0 || (r == LIBUSB_ERROR_TIMEOUT && actual_length > 0))
+		return actual_length;
+
+	return r;
+}
+
+API_EXPORTED int usb_bulk_read(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout)
+{
+	return usb_bulk_io(dev, ep, bytes, size, timeout);
+}
+
+API_EXPORTED int usb_bulk_write(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout)
+{
+	return usb_bulk_io(dev, ep, bytes, size, timeout);
+}
+
+static int usb_interrupt_io(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout)
+{
+	int actual_length;
+	int r;
+	usbi_dbg("endpoint %x size %d timeout %d", ep, size, timeout);
+	r = libusb_interrupt_transfer(dev->handle, ep & 0xff, bytes, size,
+		&actual_length, timeout);
+	
+	/* if we timed out but did transfer some data, report as successful short
+	 * read. FIXME: is this how libusb-0.1 works? */
+	if (r == 0 || (r == LIBUSB_ERROR_TIMEOUT && actual_length > 0))
+		return actual_length;
+
+	return r;
+}
+
+API_EXPORTED int usb_interrupt_read(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout)
+{
+	return usb_interrupt_io(dev, ep, bytes, size, timeout);
+}
+
+API_EXPORTED int usb_interrupt_write(usb_dev_handle *dev, int ep, char *bytes,
+	int size, int timeout)
+{
+	return usb_interrupt_io(dev, ep, bytes, size, timeout);
 }
 
