@@ -544,3 +544,23 @@ API_EXPORTED int usb_get_descriptor_by_endpoint(usb_dev_handle *dev, int ep,
 		(type << 8) | desc_index, 0, buf, size, 1000);
 }
 
+API_EXPORTED int usb_get_driver_np(usb_dev_handle *dev, int interface,
+	char *name, unsigned int namelen)
+{
+	int r = libusb_kernel_driver_active(dev->handle, interface);
+	if (r == 1) {
+		/* libusb-1.0 doesn't expose driver name, so fill in a dummy value */
+		snprintf(name, namelen, "dummy");
+		return 0;
+	} else if (r == 0) {
+		return -ENODATA;
+	} else {
+		return r;
+	}
+}
+
+API_EXPORTED int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface)
+{
+	return libusb_detach_kernel_driver(dev->handle, interface);	
+}
+
