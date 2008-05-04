@@ -462,6 +462,8 @@ static int usb_bulk_io(usb_dev_handle *dev, int ep, char *bytes,
 	 * read. FIXME: is this how libusb-0.1 works? */
 	if (r == 0 || (r == LIBUSB_ERROR_TIMEOUT && actual_length > 0))
 		return actual_length;
+	else if (r == LIBUSB_ERROR_TIMEOUT)
+		return -ETIMEDOUT;
 
 	return r;
 }
@@ -491,6 +493,8 @@ static int usb_interrupt_io(usb_dev_handle *dev, int ep, char *bytes,
 	 * read. FIXME: is this how libusb-0.1 works? */
 	if (r == 0 || (r == LIBUSB_ERROR_TIMEOUT && actual_length > 0))
 		return actual_length;
+	else if (r == LIBUSB_ERROR_TIMEOUT)
+		return -ETIMEDOUT;
 
 	return r;
 }
