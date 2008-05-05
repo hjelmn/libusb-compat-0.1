@@ -79,6 +79,11 @@ API_EXPORTED void usb_init(void)
 		usbi_err("initialization failed!");
 }
 
+API_EXPORTED void usb_set_debug(int level)
+{
+
+}
+
 API_EXPORTED char *usb_strerror(void)
 {
 	return "Unknown error";
