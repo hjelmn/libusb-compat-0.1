@@ -135,6 +135,7 @@ static int find_busses(struct usb_bus **ret)
 
 		memset(bus, 0, sizeof(*bus));
 		bus->location = bus_num;
+		sprintf(bus->dirname, "%03d", bus_num);
 		LIST_ADD(busses, bus);
 	}
 
@@ -239,6 +240,7 @@ static int find_devices(libusb_device **dev_list, int dev_list_len,
 
 		dev->bus = bus;
 		dev->devnum = libusb_get_device_address(newlib_dev);
+		sprintf(dev->filename, "%03d", dev->devnum);
 		LIST_ADD(devices, dev);
 	}
 
