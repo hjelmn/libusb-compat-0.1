@@ -432,8 +432,10 @@ API_EXPORTED int usb_claim_interface(usb_dev_handle *dev, int interface)
 
 	switch (r) {
 	case LIBUSB_ERROR_NO_MEM:
+		errno = ENOMEM;
 		return -ENOMEM;
 	case LIBUSB_ERROR_BUSY:
+		errno = EBUSY;
 		return -EBUSY;
 	default:
 		return r;
@@ -492,10 +494,16 @@ static int usb_bulk_io(usb_dev_handle *dev, int ep, char *bytes,
 	 * read. FIXME: is this how libusb-0.1 works? */
 	if (r == 0 || (r == LIBUSB_ERROR_TIMEOUT && actual_length > 0))
 		return actual_length;
-	else if (r == LIBUSB_ERROR_TIMEOUT)
-		return -ETIMEDOUT;
 
-	return r;
+	switch (r) {
+	case LIBUSB_ERROR_TIMEOUT:
+		return -ETIMEDOUT;
+	case LIBUSB_ERROR_PIPE:
+		errno = EPIPE;
+		return -EPIPE;
+	default:
+		return r;
+	}
 }
 
 API_EXPORTED int usb_bulk_read(usb_dev_handle *dev, int ep, char *bytes,
@@ -552,10 +560,19 @@ API_EXPORTED int usb_control_msg(usb_dev_handle *dev, int bmRequestType,
 		bRequest & 0xff, wValue & 0xffff, wIndex & 0xffff, bytes, size & 0xffff,
 		timeout);
 
-	if (r == LIBUSB_ERROR_TIMEOUT)
-		return -ETIMEDOUT;
-	else
+	if (r >= 0)
 		return r;
+
+	switch (r) {
+	case LIBUSB_ERROR_TIMEOUT:
+		errno = ETIMEDOUT;
+		return -ETIMEDOUT;
+	case LIBUSB_ERROR_PIPE:
+		errno = EPIPE;
+		return -EPIPE;
+	default:
+		return r;
+	}
 }
 
 API_EXPORTED int usb_get_string(usb_dev_handle *dev, int desc_index, int langid,
