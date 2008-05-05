@@ -29,9 +29,32 @@
 #include "usb.h"
 #include "usbi.h"
 
+enum usbi_log_level {
+	LOG_LEVEL_DEBUG,
+	LOG_LEVEL_INFO,
+	LOG_LEVEL_WARNING,
+	LOG_LEVEL_ERROR,
+};
+
+#ifdef ENABLE_LOGGING
+#define _usbi_log(level, fmt...) usbi_log(level, __FUNCTION__, fmt)
+#else
+#define _usbi_log(level, fmt...)
+#endif
+
+#ifdef ENABLE_DEBUG_LOGGING
+#define usbi_dbg(fmt...) _usbi_log(LOG_LEVEL_DEBUG, fmt)
+#else
+#define usbi_dbg(fmt...)
+#endif
+
+#define usbi_info(fmt...) _usbi_log(LOG_LEVEL_INFO, fmt)
+#define usbi_warn(fmt...) _usbi_log(LOG_LEVEL_WARNING, fmt)
+#define usbi_err(fmt...) _usbi_log(LOG_LEVEL_ERROR, fmt)
+
 API_EXPORTED struct usb_bus *usb_busses = NULL;
 
-void usbi_log(enum usbi_log_level level, const char *function,
+static void usbi_log(enum usbi_log_level level, const char *function,
 	const char *format, ...)
 {
 	va_list args;

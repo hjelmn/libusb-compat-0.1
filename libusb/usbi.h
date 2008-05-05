@@ -45,32 +45,6 @@
 	  ent->next = NULL; \
 	} while (0)
 
-enum usbi_log_level {
-	LOG_LEVEL_DEBUG,
-	LOG_LEVEL_INFO,
-	LOG_LEVEL_WARNING,
-	LOG_LEVEL_ERROR,
-};
-
-void usbi_log(enum usbi_log_level, const char *function,
-	const char *format, ...);
-
-#ifdef ENABLE_LOGGING
-#define _usbi_log(level, fmt...) usbi_log(level, __FUNCTION__, fmt)
-#else
-#define _usbi_log(level, fmt...)
-#endif
-
-#ifdef ENABLE_DEBUG_LOGGING
-#define usbi_dbg(fmt...) _usbi_log(LOG_LEVEL_DEBUG, fmt)
-#else
-#define usbi_dbg(fmt...)
-#endif
-
-#define usbi_info(fmt...) _usbi_log(LOG_LEVEL_INFO, fmt)
-#define usbi_warn(fmt...) _usbi_log(LOG_LEVEL_WARNING, fmt)
-#define usbi_err(fmt...) _usbi_log(LOG_LEVEL_ERROR, fmt)
-
 struct usb_dev_handle {
 	libusb_device_handle *handle;
 	struct usb_device *device;
