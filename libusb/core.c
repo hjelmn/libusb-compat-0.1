@@ -470,9 +470,9 @@ static int initialize_device(struct usb_device *dev)
 	 * a single flat memory area (libusb-1.0 provides separate allocations).
 	 * we hand-copy libusb-1.0's descriptors into our own structures. */
 	for (i = 0; i < num_configurations; i++) {
-		struct libusb_config_descriptor *newlib_config = 
-			libusb_get_config_descriptor(newlib_dev, i);
-		if (!newlib_config) {
+		struct libusb_config_descriptor *newlib_config;
+		r = libusb_get_config_descriptor(newlib_dev, i, &newlib_config);
+		if (r < 0) {
 			clear_device(dev);
 			free(dev->config);
 			return -EIO;
