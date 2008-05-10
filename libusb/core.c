@@ -285,23 +285,220 @@ err:
 	return -ENOMEM;
 }
 
-static void initialize_device(struct usb_device *dev)
+static void clear_endpoint_descriptor(struct usb_endpoint_descriptor *ep)
+{
+	if (ep->extra)
+		free(ep->extra);
+}
+
+static void clear_interface_descriptor(struct usb_interface_descriptor *iface)
+{
+	if (iface->extra)
+		free(iface->extra);
+	if (iface->endpoint) {
+		int i;
+		for (i = 0; i < iface->bNumEndpoints; i++)
+			clear_endpoint_descriptor(iface->endpoint + i);
+		free(iface->endpoint);
+	}
+}
+
+static void clear_interface(struct usb_interface *iface)
+{
+	if (iface->altsetting) {
+		int i;
+		for (i = 0; i < iface->num_altsetting; i++)
+			clear_interface_descriptor(iface->altsetting + i);
+		free(iface->altsetting);
+	}
+}
+
+static void clear_config_descriptor(struct usb_config_descriptor *config)
+{
+	if (config->extra)
+		free(config->extra);
+	if (config->interface) {
+		int i;
+		for (i = 0; i < config->bNumInterfaces; i++)
+			clear_interface(config->interface + i);
+		free(config->interface);
+	}
+}
+
+static void clear_device(struct usb_device *dev)
+{
+	int i;
+	for (i = 0; i < dev->descriptor.bNumConfigurations; i++)
+		clear_config_descriptor(dev->config + i);
+}
+
+static int copy_endpoint_descriptor(struct usb_endpoint_descriptor *dest,
+	const struct libusb_endpoint_descriptor *src)
+{
+	memcpy(dest, src, USB_DT_ENDPOINT_AUDIO_SIZE);
+
+	dest->extralen = src->extra_length;
+	if (src->extra_length) {
+		dest->extra = malloc(src->extra_length);
+		if (!dest->extra)
+			return -ENOMEM;
+		memcpy(dest->extra, src->extra, src->extra_length);
+	}
+
+	return 0;
+}
+
+static int copy_interface_descriptor(struct usb_interface_descriptor *dest,
+	const struct libusb_interface_descriptor *src)
+{
+	int i;
+	int num_endpoints = src->bNumEndpoints;
+	size_t alloc_size = sizeof(struct usb_endpoint_descriptor) * num_endpoints;
+
+	memcpy(dest, src, USB_DT_INTERFACE_SIZE);
+	dest->endpoint = malloc(alloc_size);
+	if (!dest->endpoint)
+		return -ENOMEM;
+	memset(dest->endpoint, 0, alloc_size);
+
+	for (i = 0; i < num_endpoints; i++) {
+		int r = copy_endpoint_descriptor(dest->endpoint + i, &src->endpoint[i]);
+		if (r < 0) {
+			clear_interface_descriptor(dest);
+			return r;
+		}
+	}
+
+	dest->extralen = src->extra_length;
+	if (src->extra_length) {
+		dest->extra = malloc(src->extra_length);
+		if (!dest->extra) {
+			clear_interface_descriptor(dest);
+			return -ENOMEM;
+		}
+		memcpy(dest->extra, src->extra, src->extra_length);
+	}
+
+	return 0;
+}
+
+static int copy_interface(struct usb_interface *dest,
+	const struct libusb_interface *src)
+{
+	int i;
+	int num_altsetting = src->num_altsetting;
+	size_t alloc_size = sizeof(struct usb_interface_descriptor)
+		* num_altsetting;
+
+	dest->num_altsetting = num_altsetting;
+	dest->altsetting = malloc(alloc_size);
+	if (!dest->altsetting)
+		return -ENOMEM;
+	memset(dest->altsetting, 0, alloc_size);
+
+	for (i = 0; i < num_altsetting; i++) {
+		int r = copy_interface_descriptor(dest->altsetting + i,
+			&src->altsetting[i]);
+		if (r < 0) {
+			clear_interface(dest);
+			return r;
+		}
+	}
+
+	return 0;
+}
+
+static int copy_config_descriptor(struct usb_config_descriptor *dest,
+	const struct libusb_config_descriptor *src)
+{
+	int i;
+	int num_interfaces = src->bNumInterfaces;
+	size_t alloc_size = sizeof(struct usb_interface) * num_interfaces;
+
+	memcpy(dest, src, USB_DT_CONFIG_SIZE);
+	dest->interface = malloc(alloc_size);
+	if (!dest->interface)
+		return -ENOMEM;
+	memset(dest->interface, 0, alloc_size);
+
+	for (i = 0; i < num_interfaces; i++) {
+		int r = copy_interface(dest->interface + i, &src->interface[i]);
+		if (r < 0) {
+			clear_config_descriptor(dest);
+			return r;
+		}
+	}
+
+	dest->extralen = src->extra_length;
+	if (src->extra_length) {
+		dest->extra = malloc(src->extra_length);
+		if (!dest->extra) {
+			clear_config_descriptor(dest);
+			return -ENOMEM;
+		}
+		memcpy(dest->extra, src->extra, src->extra_length);
+	}
+
+	return 0;
+}
+
+static int initialize_device(struct usb_device *dev)
 {
 	libusb_device *newlib_dev = dev->dev;
-	const struct libusb_device_descriptor *newlib_dev_desc;
+	int num_configurations;
+	size_t alloc_size;
+	int r;
+	int i;
 
-	libusb_ref_device(newlib_dev);
-	newlib_dev_desc = libusb_get_device_descriptor(newlib_dev);
+	/* device descriptor is identical in both libs */
+	r = libusb_get_device_descriptor(newlib_dev,
+		(struct libusb_device_descriptor *) &dev->descriptor);
+	if (r < 0) {
+		usbi_err("error %d getting device descriptor", r);
+		return r;
+	}
 
-	/* descriptors are identical through both libs */
-	memcpy(&dev->descriptor, newlib_dev_desc,
-		sizeof(struct usb_device_descriptor));
-	dev->config = (struct usb_config_descriptor *)
-		libusb_get_config_descriptor(newlib_dev);
+	num_configurations = dev->descriptor.bNumConfigurations;
+	alloc_size = sizeof(struct usb_config_descriptor) * num_configurations;
+	dev->config = malloc(alloc_size);
+	if (!dev->config)
+		return -ENOMEM;
+	memset(dev->config, 0, alloc_size);
+
+	/* even though structures are identical, we can't just use libusb-1.0's
+	 * config descriptors because we have to store all configurations in
+	 * a single flat memory area (libusb-1.0 provides separate allocations).
+	 * we hand-copy libusb-1.0's descriptors into our own structures. */
+	for (i = 0; i < num_configurations; i++) {
+		struct libusb_config_descriptor *newlib_config = 
+			libusb_get_config_descriptor(newlib_dev, i);
+		if (!newlib_config) {
+			clear_device(dev);
+			free(dev->config);
+			return -EIO;
+		}
+		r = copy_config_descriptor(dev->config + i, newlib_config);
+		libusb_free_config_descriptor(newlib_config);
+		if (r < 0) {
+			clear_device(dev);
+			free(dev->config);
+			return r;
+		}
+	}
 
 	/* FIXME: implement later */
 	dev->num_children = 0;
 	dev->children = NULL;
+
+	libusb_ref_device(newlib_dev);
+	return 0;
+}
+
+static void free_device(struct usb_device *dev)
+{
+	clear_device(dev);
+	libusb_unref_device(dev->dev);
+	free(dev);
 }
 
 API_EXPORTED int usb_find_devices(void)
@@ -350,8 +547,7 @@ API_EXPORTED int usb_find_devices(void)
 				usbi_dbg("device %d.%d removed",
 					dev->bus->location, dev->devnum);
 				LIST_DEL(bus->devices, dev);
-				libusb_unref_device(dev->dev);
-				free(dev);
+				free_device(dev);
 				changes++;
 			}
 
@@ -362,10 +558,16 @@ API_EXPORTED int usb_find_devices(void)
 		dev = new_devices;
 		while (dev) {
 			struct usb_device *tdev = dev->next;
+			r = initialize_device(dev);	
+			if (r < 0) {
+				usbi_err("couldn't initialize device %d.%d (error %d)",
+					dev->bus->location, dev->devnum, r);
+				dev = tdev;
+				continue;
+			}
 			usbi_dbg("device %d.%d added", dev->bus->location, dev->devnum);
 			LIST_DEL(new_devices, dev);
 			LIST_ADD(bus->devices, dev);
-			initialize_device(dev);
 			changes++;
 			dev = tdev;
 		}
