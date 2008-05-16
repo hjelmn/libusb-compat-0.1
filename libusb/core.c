@@ -486,7 +486,8 @@ static int initialize_device(struct usb_device *dev)
 		}
 	}
 
-	/* FIXME: implement later */
+	/* libusb doesn't implement this and it doesn't seem that important. If
+	 * someone asks for it, we can implement it in v1.1 or later. */
 	dev->num_children = 0;
 	dev->children = NULL;
 
