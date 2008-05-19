@@ -3,6 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
+emulated=1
+emulated_by=libusb-1.0
+
 Name: libusb
 Description: USB access library (libusb-1.0 compat wrapper)
 Version: @LIBUSB01_VERSION@
