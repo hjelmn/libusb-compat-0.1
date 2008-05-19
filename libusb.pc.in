@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: libusb
 Description: USB access library (libusb-1.0 compat wrapper)
-Version: @VERSION@
+Version: @LIBUSB01_VERSION@
 Libs: -L${libdir} -lusb
 Cflags: -I${includedir}
 
