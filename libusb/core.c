@@ -585,15 +585,16 @@ API_EXPORTED struct usb_bus *usb_get_busses(void)
 
 API_EXPORTED usb_dev_handle *usb_open(struct usb_device *dev)
 {
+	int r;
 	usbi_dbg("");
 
 	usb_dev_handle *udev = malloc(sizeof(*udev));
 	if (!udev)
 		return NULL;
 
-	udev->handle = libusb_open((libusb_device *) dev->dev);
-	if (!udev->handle) {
-		usbi_err("could not open device");
+	r = libusb_open((libusb_device *) dev->dev, &udev->handle);
+	if (r < 0) {
+		usbi_err("could not open device, error %d", r);
 		free(udev);
 		return NULL;
 	}
