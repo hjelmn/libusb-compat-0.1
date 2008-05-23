@@ -112,6 +112,7 @@ API_EXPORTED void usb_init(void)
 API_EXPORTED void usb_set_debug(int level)
 {
 	usb_debug = level;
+	libusb_set_debug(3);
 }
 
 API_EXPORTED char *usb_strerror(void)
