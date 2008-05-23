@@ -29,6 +29,8 @@
 #include "usb.h"
 #include "usbi.h"
 
+static int usb_debug = 0;
+
 enum usbi_log_level {
 	LOG_LEVEL_DEBUG,
 	LOG_LEVEL_INFO,
@@ -60,6 +62,11 @@ static void usbi_log(enum usbi_log_level level, const char *function,
 	va_list args;
 	FILE *stream = stdout;
 	const char *prefix;
+
+#ifndef ENABLE_DEBUG_LOGGING
+	if (!usb_debug)
+		return;
+#endif
 
 	switch (level) {
 	case LOG_LEVEL_INFO:
@@ -104,7 +111,7 @@ API_EXPORTED void usb_init(void)
 
 API_EXPORTED void usb_set_debug(int level)
 {
-
+	usb_debug = level;
 }
 
 API_EXPORTED char *usb_strerror(void)
