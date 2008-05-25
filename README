@@ -1,8 +1,29 @@
 libusb-compat-0.1
+=================
 
 A compatibility layer allowing applications written for libusb-0.1 to work
-with libusb-1.0.
+with libusb-1.0. libusb-compat-0.1 attempts to look, feel, smell and walk
+like libusb-0.1.
 
-usb_resetep(), a previously deprecated function, is implemented as equivalent
-to calling usb_clear_halt().
+Do not attempt to install libusb-0.1 and libusb-compat-0.1 on the same system.
+
+Known quirks/differences from libusb-0.1:
+ 1. usb_resetep(), a previously deprecated function, is implemented as
+    equivalent to calling usb_clear_halt().
+ 2. libusb-0.1 allowed you to open a device which you did not have permission
+    to do anything useful with (all I/O requests would immediately fail).
+	libusb-compat-0.1 does not allow you to open such devices. You can still
+	read descriptor info without opening a device.
+ 3. usb_device's "num_children" attribute is hardcoded to 0, and "children"
+    is hardcoded to NULL. Do you need this information in your software? Let
+	us know on the mailing list, and we'll add it.
+
+libusb homepage:
+http://libusb.sourceforge.net
+
+Use the mailing list for questions, comments, etc:
+https://sourceforge.net/mailarchive/forum.php?forum_name=libusb-devel
+
+- Daniel Drake <dsd@gentoo.org>
+(use the mailing list rather than mailing developers directly)
 
