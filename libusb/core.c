@@ -721,6 +721,14 @@ static int usb_bulk_io(usb_dev_handle *dev, int ep, char *bytes,
 API_EXPORTED int usb_bulk_read(usb_dev_handle *dev, int ep, char *bytes,
 	int size, int timeout)
 {
+	if (!(ep & USB_ENDPOINT_IN)) {
+		/* libusb-0.1 will strangely fix up a read request from endpoint
+		 * 0x01 to be from endpoint 0x81. do the same thing here, but
+		 * warn about this silly behaviour. */
+		usbi_warn("endpoint %x is missing IN direction bit, fixing");
+		ep |= USB_ENDPOINT_IN;
+	}
+
 	return usb_bulk_io(dev, ep, bytes, size, timeout);
 }
 
