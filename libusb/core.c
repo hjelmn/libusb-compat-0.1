@@ -29,6 +29,7 @@
 #include "usb.h"
 #include "usbi.h"
 
+static libusb_context *ctx;
 static int usb_debug = 0;
 
 enum usbi_log_level {
@@ -104,15 +105,17 @@ API_EXPORTED void usb_init(void)
 	int r;
 	usbi_dbg("");
 
-	r = libusb_init();
-	if (r < 0)
-		usbi_err("initialization failed!");
+	if (!ctx) {
+		r = libusb_init(&ctx);
+		if (r < 0)
+			usbi_err("initialization failed!");
+	}
 }
 
 API_EXPORTED void usb_set_debug(int level)
 {
 	usb_debug = level;
-	libusb_set_debug(3);
+	libusb_set_debug(ctx, 3);
 }
 
 API_EXPORTED char *usb_strerror(void)
@@ -129,7 +132,7 @@ static int find_busses(struct usb_bus **ret)
 	int i;
 	int r;
 
-	r = libusb_get_device_list(&dev_list);
+	r = libusb_get_device_list(ctx, &dev_list);
 	if (r < 0) {
 		usbi_err("get_device_list failed with error %d", r);
 		return -1;
@@ -519,7 +522,7 @@ API_EXPORTED int usb_find_devices(void)
 	int changes = 0;
 
 	usbi_dbg("");
-	dev_list_len = libusb_get_device_list(&dev_list);
+	dev_list_len = libusb_get_device_list(ctx, &dev_list);
 	if (dev_list_len < 0)
 		return dev_list_len;
 
