@@ -29,7 +29,7 @@
 #include "usb.h"
 #include "usbi.h"
 
-static libusb_context *ctx;
+static libusb_context *ctx = NULL;
 static int usb_debug = 0;
 
 enum usbi_log_level {
@@ -107,15 +107,24 @@ API_EXPORTED void usb_init(void)
 
 	if (!ctx) {
 		r = libusb_init(&ctx);
-		if (r < 0)
+		if (r < 0) {
 			usbi_err("initialization failed!");
+			return;
+		}
+
+		/* usb_set_debug can be called before usb_init */
+		if (usb_debug)
+			libusb_set_debug(ctx, 3);
 	}
 }
 
 API_EXPORTED void usb_set_debug(int level)
 {
 	usb_debug = level;
-	libusb_set_debug(ctx, 3);
+
+	/* usb_set_debug can be called before usb_init */
+	if (ctx)
+		libusb_set_debug(ctx, 3);
 }
 
 API_EXPORTED char *usb_strerror(void)
