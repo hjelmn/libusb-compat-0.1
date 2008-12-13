@@ -1,6 +1,9 @@
 This file lists notable changes in each release. For the full history of all
 changes, see ChangeLog.
 
+2008-12-13: libusb-compat-0.1.0 release
+ * Documentation changes only
+
 2008-11-21: libusb-compat-0.1.0-beta3 release
  * Bug fixes
 
