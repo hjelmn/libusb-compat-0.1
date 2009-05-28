@@ -1,6 +1,9 @@
 This file lists notable changes in each release. For the full history of all
 changes, see ChangeLog.
 
+2009-05-28: libusb-compat-0.1.1 release
+ * Further improvements to match libusb-0.1 endpoint addressing behaviour
+
 2008-12-13: libusb-compat-0.1.0 release
  * Documentation changes only
 
