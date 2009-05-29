@@ -208,8 +208,12 @@ API_EXPORTED int usb_find_busses(void)
 	int changes = 0;
 	int r;
 
-	usbi_dbg("");
+	/* libusb-1.0 initialization might have failed, but we can't indicate
+	 * this with libusb-0.1, so trap that situation here */
+	if (!ctx)
+		return 0;
 	
+	usbi_dbg("");
 	r = find_busses(&new_busses);
 	if (r < 0) {
 		usbi_err("find_busses failed with error %d", r);
@@ -529,6 +533,11 @@ API_EXPORTED int usb_find_devices(void)
 	int dev_list_len;
 	int r;
 	int changes = 0;
+
+	/* libusb-1.0 initialization might have failed, but we can't indicate
+	 * this with libusb-0.1, so trap that situation here */
+	if (!ctx)
+		return 0;
 
 	usbi_dbg("");
 	dev_list_len = libusb_get_device_list(ctx, &dev_list);
