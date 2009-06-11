@@ -1,4 +1,5 @@
 AUTOMAKE_OPTIONS = dist-bzip2
+ACLOCAL_AMFLAGS = -I m4
 DISTCLEANFILES = ChangeLog libusb.pc
 EXTRA_DIST = LICENSE
 SUBDIRS = libusb
