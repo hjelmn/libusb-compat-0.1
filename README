@@ -26,6 +26,9 @@ Known quirks/differences from libusb-0.1:
     to cause all libusb I/O to halt. Instead, port your application to use
     libusb-1.0's asynchronous transfer API, which supports transfer
     cancellation.
+ 5. Error codes returned on certain events may not exactly match the error
+    codes returned by libusb-0.1. Patches accepted to bring us closer to the
+    behaviour of libusb-0.1 on Linux.
 
 libusb homepage:
 http://libusb.sourceforge.net
