@@ -659,6 +659,10 @@ API_EXPORTED usb_dev_handle *usb_open(struct usb_device *dev)
 
 	r = libusb_open((libusb_device *) dev->dev, &udev->handle);
 	if (r < 0) {
+		if (r == LIBUSB_ERROR_ACCESS) {
+			usbi_info("Device open failed due to a permission denied error.");
+			usbi_info("libusb requires write access to USB device nodes.");
+		}
 		usbi_err("could not open device, error %d", r);
 		free(udev);
 		errno = libusb_to_errno(r);
