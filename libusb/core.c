@@ -777,7 +777,7 @@ API_EXPORTED int usb_bulk_read(usb_dev_handle *dev, int ep, char *bytes,
 	return usb_bulk_io(dev, ep, bytes, size, timeout);
 }
 
-API_EXPORTED int usb_bulk_write(usb_dev_handle *dev, int ep, char *bytes,
+API_EXPORTED int usb_bulk_write(usb_dev_handle *dev, int ep, const char *bytes,
 	int size, int timeout)
 {
 	if (ep & USB_ENDPOINT_IN) {
@@ -821,7 +821,7 @@ API_EXPORTED int usb_interrupt_read(usb_dev_handle *dev, int ep, char *bytes,
 	return usb_interrupt_io(dev, ep, bytes, size, timeout);
 }
 
-API_EXPORTED int usb_interrupt_write(usb_dev_handle *dev, int ep, char *bytes,
+API_EXPORTED int usb_interrupt_write(usb_dev_handle *dev, int ep, const char *bytes,
 	int size, int timeout)
 {
 	if (ep & USB_ENDPOINT_IN) {
