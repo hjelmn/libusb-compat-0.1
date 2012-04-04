@@ -916,6 +916,22 @@ API_EXPORTED int usb_get_driver_np(usb_dev_handle *dev, int interface,
 
 API_EXPORTED int usb_detach_kernel_driver_np(usb_dev_handle *dev, int interface)
 {
-	return compat_err(libusb_detach_kernel_driver(dev->handle, interface));
+	int r = compat_err(libusb_detach_kernel_driver(dev->handle, interface));
+	switch (r) {
+	case LIBUSB_SUCCESS:
+		return 0;
+	case LIBUSB_ERROR_NOT_FOUND:
+		return -ENODATA;
+	case LIBUSB_ERROR_INVALID_PARAM:
+		return -EINVAL;
+	case LIBUSB_ERROR_NO_DEVICE:
+		return -ENODEV;
+	case LIBUSB_ERROR_OTHER:
+		return -errno;
+	/* default can be reached only in non-Linux implementations,
+	 * mostly with LIBUSB_ERROR_NOT_SUPPORTED. */
+	default:
+		return -ENOSYS;
+	}
 }
 
