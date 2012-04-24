@@ -36,7 +36,7 @@ Known quirks/differences from libusb-0.1:
     true, resulting in broken software.
 
 libusb homepage:
-http://libusb.sourceforge.net
+http://libusb.org/
 
 Use the mailing list for questions, comments, etc:
 https://sourceforge.net/mailarchive/forum.php?forum_name=libusb-devel
