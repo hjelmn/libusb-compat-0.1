@@ -788,7 +788,7 @@ API_EXPORTED int usb_bulk_write(usb_dev_handle *dev, int ep, const char *bytes,
 		ep &= ~USB_ENDPOINT_IN;
 	}
 
-	return usb_bulk_io(dev, ep, bytes, size, timeout);
+	return usb_bulk_io(dev, ep, (char *)bytes, size, timeout);
 }
 
 static int usb_interrupt_io(usb_dev_handle *dev, int ep, char *bytes,
@@ -832,7 +832,7 @@ API_EXPORTED int usb_interrupt_write(usb_dev_handle *dev, int ep, const char *by
 		ep &= ~USB_ENDPOINT_IN;
 	}
 
-	return usb_interrupt_io(dev, ep, bytes, size, timeout);
+	return usb_interrupt_io(dev, ep, (char *)bytes, size, timeout);
 }
 
 API_EXPORTED int usb_control_msg(usb_dev_handle *dev, int bmRequestType,
