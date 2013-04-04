@@ -21,6 +21,7 @@
 #include <config.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -136,6 +137,13 @@ static void usbi_log(enum usbi_log_level level, const char *function,
 	fprintf(stream, "\n");
 }
 
+static void _usb_finalize(void) {
+       if (ctx) {
+          libusb_exit(ctx);
+               ctx = NULL;
+               }
+}
+
 API_EXPORTED void usb_init(void)
 {
 	int r;
@@ -151,6 +159,8 @@ API_EXPORTED void usb_init(void)
 		/* usb_set_debug can be called before usb_init */
 		if (usb_debug)
 			libusb_set_debug(ctx, 3);
+
+               atexit(_usb_finalize);
 	}
 }
 
